@@ -251,7 +251,7 @@ static class Command
 
                 {
                     var entry = new UstarTarEntry(TarEntryType.RegularFile, $"{guid:N}/pathname");
-                    entry.DataStream = EncodeText($"{pathRoot}{relativePath}"); // new MemoryStream(Encoding.UTF8.GetBytes());
+                    entry.DataStream = EncodeText($"{pathRoot}{relativePath}");
                     unitypackage.WriteEntry(entry);
                 }
 
@@ -262,7 +262,7 @@ static class Command
                     unitypackage.WriteEntry(entry);
                 }
 
-                output?.WriteLine($"unitypackage-path={unitypackage}");
+                output?.WriteLine($"unitypackage-path={unitypackagePath}");
             }
         }
 
