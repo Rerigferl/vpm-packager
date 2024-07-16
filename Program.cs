@@ -27,8 +27,9 @@ static class Command
     /// <param name="createUnityPackage">-u</param>
     /// <param name="createZip">-z</param>
     /// <param name="manifestPath">-p</param>
+    /// <param name="outputDirectoryName">-o</param>
     /// <returns></returns>
-    public static async Task<int> Root(this StaticInstanceMethod _instance, string? manifestPath = null, bool createUnityPackage = false, bool createZip = false)
+    public static async Task<int> Root(this StaticInstanceMethod _instance, string? manifestPath = null, bool createUnityPackage = false, bool createZip = false, string outputDirectoryName = "output")
     {
         manifestPath ??= ManifestFileName;
         if (!File.Exists(manifestPath))
@@ -69,9 +70,11 @@ static class Command
         var entries = manifestPathInfo.Directory?.EnumerateFileSystemInfos("*", new EnumerationOptions() { RecurseSubdirectories = true, IgnoreInaccessible = true, ReturnSpecialDirectories = false}).ToArray() ?? [];
         var rootDir = manifestPathInfo.Directory!.FullName;
 
+        Directory.CreateDirectory(outputDirectoryName);
+
         if (createZip)
         {
-            var zipPath = $"{name}.{version}.zip";
+            var zipPath = Path.Join(outputDirectoryName, $"{name}.{version}.zip");
             {
                 using ZipArchive zip = new(File.Create(zipPath), ZipArchiveMode.Create);
                 foreach (var entry in entries)
@@ -183,7 +186,7 @@ static class Command
 
         if (createUnityPackage)
         {
-            var unitypackagePath = $"{name}.{version}.unitypackage";
+            var unitypackagePath = Path.Join(outputDirectoryName, $"{name}.{version}.unitypackage");
             using TarWriter unitypackage = new(new GZipStream(File.Create(unitypackagePath), CompressionMode.Compress));
         
             var dict = entries.Where(x => x.Extension is not ".meta" && !x.FullName.Contains(".github")).ToDictionary(x => x.FullName, x => "", StringComparer.OrdinalIgnoreCase);
@@ -264,8 +267,10 @@ static class Command
         }
 
         {
-            using var fs = File.Create(ManifestFileName);
+            var newManifestPath = Path.Join(outputDirectoryName, ManifestFileName);
+            using var fs = File.Create(newManifestPath);
             await JsonSerializer.SerializeAsync(fs, manifest, JsonSerializerContexts.Default.JsonNode);
+            output?.WriteLine($"manifest-path={newManifestPath}");
         }
 
         if (output is not null)
