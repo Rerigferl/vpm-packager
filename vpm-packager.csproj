@@ -30,6 +30,7 @@
 		<StackTraceSupport>false</StackTraceSupport>
 		<UseSystemResourceKeys>true</UseSystemResourceKeys>
 		<LinkerFlavor>lld</LinkerFlavor>
+		<IlcInstructionSet>native</IlcInstructionSet>
 	</PropertyGroup>
 
 	<ItemGroup>
