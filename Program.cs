@@ -16,8 +16,6 @@ using System.Text.Json.Serialization;
 using System.Buffers.Text;
 using System.Buffers;
 
-args = ["-z", "-u", "-p", "EnhancedBlendShapeEditor/package.json"];
-
 await ConsoleApp.RunAsync(args, default(StaticInstanceMethod)!.Root);
 
 sealed class StaticInstanceMethod;
