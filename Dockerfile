@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/nightly/sdk:9.0.100-preview.6 as builder
+FROM mcr.microsoft.com/dotnet/sdk:9.0 as builder
 WORKDIR /app
 
 RUN apt-get update \
