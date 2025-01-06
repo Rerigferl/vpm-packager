@@ -82,9 +82,18 @@ static class Command
                     if (entry is DirectoryInfo)
                         continue;
 
-                    var entryName = $"{entry.FullName.AsSpan(rootDir.Length + 1)}";
-                    if (entryName.Contains(".github"))
+                    bool needSkip = false;
+                    foreach(var segmentRange in entry.FullName.AsSpan().SplitAny(@"/\"))
+                    {
+                        var segment = entry.FullName.AsSpan()[segmentRange];
+                        needSkip = segment is ".github" || segment.EndsWith("~");
+                        if (needSkip)
+                            break;
+                    }
+                    if (needSkip)
                         continue;
+
+                    var entryName = $"{entry.FullName.AsSpan(rootDir.Length + 1)}";
 
                     zip.CreateEntryFromFile(entry.FullName, entryName);
                 }
@@ -188,9 +197,29 @@ static class Command
         {
             var unitypackagePath = Path.Join(outputDirectoryName, $"{name}.{version}.unitypackage");
             using TarWriter unitypackage = new(new GZipStream(File.Create(unitypackagePath), CompressionMode.Compress));
-        
-            var dict = entries.Where(x => x.Extension is not ".meta" && !x.FullName.Contains(".github")).ToDictionary(x => x.FullName, x => "", StringComparer.OrdinalIgnoreCase);
-            var lookup = dict.GetAlternateLookup<string, string, ReadOnlySpan<char>>();
+
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach(var entry in entries)
+            {
+                var fullName = entry.FullName;
+                if (fullName.EndsWith(".meta"))
+                    continue;
+
+                bool needSkip = false;
+                foreach (var segmentRange in fullName.AsSpan().SplitAny(@"/\"))
+                {
+                    var segment = fullName.AsSpan()[segmentRange];
+                    needSkip = segment is ".github" || segment.EndsWith("~");
+                    if (needSkip)
+                        break;
+                }
+                if (needSkip)
+                    continue;
+
+                dict.TryAdd(fullName, "");
+            }
+
+            var lookup = dict.GetAlternateLookup<ReadOnlySpan<char>>();
             foreach(var entry in entries.Where(x => x.Extension is ".meta"))
             {
                 var assetName = entry.FullName.AsSpan()[..^".meta".Length];
